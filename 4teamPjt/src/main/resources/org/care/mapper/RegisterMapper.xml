@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.care.mapper.RegisterMapper">
+	
+	<insert id="register">
+	    INSERT INTO USERINFO(   USERNO
+	    					   , USERID 
+	   					       , PASSWORD 
+	   					       , USERNAME
+	   					       , NICKNAME
+	   					       , BIRTH
+	   					       , EMAIL
+	   					       , GENDER )
+	                  VALUES(  USERNUM.NEXTVAL
+	                			, #{userId} 
+	                 		   , #{password}
+	                 		   , #{userName}
+	                 		   , #{nickName}
+	                 		   , #{birth}
+	                 		   , #{email}
+	                 		   , #{gender})
+    </insert>
+    
+    	<!-- 아이디 중복 체크 -->
+<select id="idChk" resultType="int">
+	SELECT COUNT(*) FROM USERINFO
+	WHERE USERID = #{userId}
+</select>
+   
+</mapper>

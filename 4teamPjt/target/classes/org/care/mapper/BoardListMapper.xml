@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.care.mapper.BoardListMapper">
+
+	<insert id="insert" parameterType="org.care.domain.BoardInfo">
+		<selectKey keyProperty="boardNo" resultType="int"
+			order="BEFORE">
+			select BOARDNUM.NEXTVAL from dual
+		</selectKey>
+
+		INSERT INTO BOARDINFO
+		VALUES(#{boardNo},
+		#{userNo},
+		#{boardTitle},
+		#{boardContents},
+		0,
+		SYSDATE)
+	</insert>
+
+	<select id="selectCount">
+		SELECT COUNT(*) FROM BOARDINFO
+	</select>
+
+	<select id="searchCount" resultType="int">
+		SELECT COUNT(*) FROM
+		BOARDINFO WHERE BOARDTITLE LIKE
+		'%'||#{searching}||'%' OR
+		BOARDCONTENTS
+		LIKE '%'||#{searching}||'%'
+	</select>
+
+	<select id="search" resultType="org.care.domain.BoardInfo">
+		SELECT BOARDINFO.* FROM (SELECT
+		ROWNUM AS RNUM, BOARDINFO.* FROM BOARDINFO
+		WHERE BOARDINFO.BOARDTITLE
+		LIKE '%'||#{searching}||'%' OR
+		BOARDINFO.BOARDCONTENTS LIKE
+		'%'||#{searching}||'%'
+		ORDER BY BOARDNO DESC) BOARDINFO WHERE RNUM
+		BETWEEN
+		#{page} AND #{endSize}
+	</select>
+
+	<select id="selectBoardList"
+		resultType="org.care.domain.BoardInfo">
+		SELECT * FROM BOARDINFO
+
+	</select>
+
+	<select id="selectById" resultType="org.care.domain.BoardInfo">
+		SELECT * FROM BOARDINFO WHERE
+		BOARDNO = ${boardNo}
+	</select>
+
+	<update id="increaseReadCount">
+		UPDATE BOARDINFO SET VIEWCOUNT = VIEWCOUNT + 1 WHERE
+		BOARDNO = ${boardNo}
+	</update>
+
+	<update id="update">
+		UPDATE BOARDINFO SET BOARDTITLE = #{boardTitle}, BOARDCONTENTS =
+		#{boardContents} where
+		BOARDNO = #{boardNo}
+	</update>
+
+	<delete id="deletePic">
+		DELETE FROM BOARDPIC WHERE BOARDNO = #{boardNo}
+	</delete>
+	<delete id="delete">
+		DELETE FROM BOARDINFO WHERE BOARDNO = #{boardNo}
+	</delete>
+
+	<update id="updatePic">
+		UPDATE BOARDPIC SET BOARDPIC1 = #{boardPic1} WHERE
+		BOARDNO = #{boardNo}
+	</update>
+	
+	<update id="updatePicNull">
+	UPDATE BOARDPIC SET BOARDPIC1 = null WHERE
+		BOARDNO = #{boardNo}
+	</update>
+
+	<insert id="picInsert">
+		INSERT INTO BOARDPIC (BoardNo, BoardPic1) VALUES
+		(#{boardNo}, #{boardPic1})
+	</insert>
+	
+	<insert id="picInsertNull">
+		INSERT INTO BOARDPIC (BoardNo) VALUES
+		(#{boardNo})
+	</insert>
+
+	<select id="picView" resultType="org.care.domain.BoardPicInfo">
+		SELECT * FROM BOARDPIC
+		WHERE
+		BOARDNO = #{boardNo}
+	</select>
+
+
+	<select id="nextView" resultType="org.care.domain.NextNo">
+		SELECT *
+		FROM(
+		SELECT BOARDNO,
+		LEAD(BOARDNO) OVER (ORDER BY BOARDNO) NEXTNO
+		FROM BOARDINFO ORDER BY
+		BOARDNO
+		)
+		WHERE BOARDNO = #{boardNo}
+	</select>
+
+	<select id="prevView" resultType="org.care.domain.PrevNo">
+		SELECT *
+		FROM(
+		SELECT BOARDNO,
+		LAG(BOARDNO) OVER (ORDER BY BOARDNO) PREVNO
+		FROM BOARDINFO ORDER BY
+		BOARDNO
+		)
+		WHERE BOARDNO = #{boardNo}
+	</select>
+
+	<select id="getName" resultType="org.care.domain.UserInfo">
+		SELECT NICKNAME FROM USERINFO
+		WHERE USERNO = #{userNo}
+	</select>
+
+	<select id="getUserNo" resultType="int">
+		SELECT USERNO FROM BOARDINFO
+		WHERE BOARDNO = #{boardNo}
+	</select>
+
+	<select id="getBoardPic"
+		resultType="org.care.domain.BoardPicInfo">
+		SELECT BOARDPIC1 FROM BOARDPIC
+		WHERE BOARDNO = #{boardNo}
+	</select>
+	
+	<select id="getBoardPicList"
+		resultType="org.care.domain.BoardPicInfo">
+		 SELECT * FROM BOARDPIC WHERE BOARDNO IN(
+		 <foreach collection="list" item="item" separator=",">
+		 #{item.boardNo}
+		 </foreach>
+		 ) ORDER BY DECODE(BOARDNO,
+		 <foreach collection="list" item="item" separator="," index="index">
+		 #{item.boardNo},#{index}
+		 </foreach>
+		 )
+	</select>
+	<select id="boardTop" resultType="org.care.dto.BoardDTO">
+<![CDATA[
+    select b.BOARDNO boardNo, b.BOARDTITLE boardTitle, b.VIEWCOUNT viewCount from ( 
+	select BOARDNO, BOARDTITLE, VIEWCOUNT from BOARDINFO 
+	order by VIEWCOUNT DESC ) b 
+	where ROWNUM <= 6
+]]>
+	</select>
+
+	<select id="getComment" resultType="org.care.domain.CommentInfo">
+		SELECT A.BOARDNO,A.COMMENTNO,A.USERNO,A.COMMENTCONTENTS,A.COMMENTDATE,USERINFO.NICKNAME FROM COMMENTINFO 
+A,USERINFO WHERE A.USERNO = USERINFO.USERNO AND A.BOARDNO = ${boardNo} ORDER BY A.COMMENTNO DESC
+	</select>
+	
+	<insert id="insertComment">
+	INSERT INTO COMMENTINFO VALUES(
+	COMMENTNUM.NEXTVAL,
+	#{arg0.boardNo},
+	#{arg0.userNo},
+	#{arg1},
+	SYSDATE
+	)
+	</insert>
+	
+	<delete id="deleteComment">
+	DELETE FROM COMMENTINFO WHERE BOARDNO=#{boardNo} AND COMMENTNO = #{commentNo}
+	</delete>
+	
+	<update id="updateComment">
+	UPDATE COMMENTINFO SET COMMENTCONTENTS = #{commentContents} WHERE BOARDNO =#{boardNo} AND COMMENTNO = #{commentNo}
+	</update>
+	
+	<delete id="commentAllDelete">
+	DELETE FROM COMMENTINFO WHERE BOARDNO=#{boardNo}
+	</delete>
+</mapper>

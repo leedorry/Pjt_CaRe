@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.care.mapper.StoreRegisterMapper">
+	
+	<insert id="storeRegister">
+	<selectKey keyProperty="storeNo" resultType="int" order="BEFORE">
+	select STORENUM.NEXTVAL from dual
+	</selectKey>
+	    INSERT INTO STOREINFO(   STORENO
+	    					   , STORENAME 
+	   					       , STOREPIC 
+	   					       , ADDRESS
+	   					       , HOURS
+	   					       , CLOSEDDAYS
+	   					       , CALLNUMBER
+	   					       , MANAGENO )
+	                  VALUES(  #{storeNo}
+	                			, #{storeName} 
+	                 		   , #{storePic}
+	                 		   , #{address}
+	                 		   , #{hours}
+	                 		   , #{closedDays}
+	                 		   , #{callNumber}
+	                 		   , #{manageNo})
+    </insert>
+    
+    
+    <insert id="detailRegister">
+    INSERT INTO DETAILINFO( STORENO
+    , TOTALSEAT
+    , SOCKETSEAT
+    , DESSERTSALES
+    , TERRACE
+    , ROOFTOP
+    , WIFI
+    , COMPANIONDOG
+    , PARKINGSPACE
+    , NOKIDSZONE
+    , SMOKINGAREA)
+    VALUES(#{storeNo}
+    , #{totalSeat}
+    , #{socketSeat}
+    , #{dessertSales}
+    , #{terrace}
+    , #{roofTop}
+    , #{wifi}
+    , #{companionDog}
+    , #{parkingSpace}
+    , #{noKidsZone}
+    , #{smokingArea})
+    </insert>
+   
+</mapper>

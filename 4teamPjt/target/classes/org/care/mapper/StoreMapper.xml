@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.care.mapper.StoreMapper">
+
+<select id="selectByStore" resultType="org.care.dto.StoreDTO">
+	SELECT * 
+	FROM STOREINFO
+	WHERE MANAGENO = #{manageNo}
+</select>
+
+<insert id="insert" parameterType="org.care.domain.StoreInfo">
+	<selectKey keyProperty="storeNo" resultType="int" order="BEFORE">
+		SELECT STORENUM.NEXTVAL FROM DUAL
+	</selectKey>
+	INSERT INTO STOREINFO (STORENO, STORENAME, ADDRESS, CALLNUMBER, MANAGENO)
+	VALUES(#{storeNo}, #{storeName}, #{address}, #{callNumber, jdbcType=VARCHAR}, #{manageNo})
+</insert>
+
+<update id="update">
+	UPDATE STOREINFO 
+	SET STORENAME = #{storeName}, ADDRESS = #{address}, CALLNUMBER = #{callNumber, jdbcType=VARCHAR} 
+	WHERE MANAGENO = #{manageNo}
+</update>
+
+	<update id="changeInfo">
+		update StoreINFO set STOREPIC=#{storePic}, ADDRESS = #{address},
+		 HOURS = #{hours, jdbcType=VARCHAR} ,ClosedDays = #{closedDays, jdbcType=VARCHAR}, 
+		 CALLNUMBER = #{callNumber, jdbcType=VARCHAR} where STORENO = #{storeNo}
+	</update>
+
+<update id="changeDetail">
+		update DETAILINFO set  TOTALSEAT=#{totalSeat}, SOCKETSEAT= #{socketSeat}, DESSERTSALES=#{dessertSales},
+		TERRACE=#{terrace}, ROOFTOP=#{roofTop}, WIFI=#{wifi}, COMPANIONDOG=#{companionDog}, 
+		PARKINGSPACE=#{parkingSpace}, NOKIDSZONE=#{noKidsZone}, SMOKINGAREA=#{smokingArea}
+    WHERE STORENO=#{storeNo}
+	</update>
+	<select id="selectDetail" resultType="org.care.domain.DetailInfo">
+	SELECT * 
+	FROM DetailINFO
+	WHERE STORENO = #{storeNo}
+	</select>
+</mapper>

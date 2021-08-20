@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.care.mapper.ListStoreMapper">
+
+<sql id="orderby">
+	<if test="orderBy == 'STORENO'">
+		STORENO
+	</if>
+	<if test="orderBy == 'AVGSCORE'">
+		AVGSCORE
+	</if>
+	<if test="orderBy == 'REVIEWCNT'">
+		REVIEWCNT
+	</if>
+</sql>
+
+<sql id="search">
+	<if test="keyword != null and keyword != ''">
+		and storeinfo.storename like '%'||#{keyword}||'%'
+		or storeinfo.address like '%'||#{keyword}||'%'
+	</if>
+</sql>
+
+<sql id="valueArr">
+	<if test= "valChk.size != 0">
+		<foreach collection="valChk" index="index" item="valChk" >
+			<if test= "valChk == 'totalSeat'">
+				and d.totalSeat <![CDATA[>]]> 0
+			</if>
+			<if test="valChk == 'socketSeat'">
+				and d.socketSeat <![CDATA[>]]> 0
+			</if>
+			<if test="valChk == 'dessertSales'">
+				and d.dessertsales = 'O'
+			</if>
+			<if test="valChk == 'terrace'">
+				and d.terrace = 'O'
+			</if>
+			<if test="valChk == 'rooftop'">
+				and d.rooftop = 'O'
+			</if>
+			<if test="valChk == 'wifi'">
+				and d.wifi = 'O'
+			</if>
+			<if test="valChk == 'companionDog'">
+				and d.companiondog = 'O'
+			</if>
+			<if test="valChk == 'parkingSpace'">
+				and d.parkingspace = 'O'
+			</if>
+			<if test="valChk == 'noKidsZone'">
+				and d.nokidszone = 'O'
+			</if>
+			<if test="valChk == 'smokingArea'">
+				and d.smokingarea = 'O'
+			</if>
+		</foreach>
+	</if>
+</sql>
+
+<select id="read" resultType="org.care.domain.StoreInfo">
+	select *
+	from storeinfo
+	where storeno = #{storeNo}
+</select>
+
+<select id="listSearch" 
+parameterType="org.care.domain.SearchCriteria"
+resultType="org.care.domain.StoreInfo">
+	SELECT 
+	 	storeinfo.* 
+	FROM 
+		(
+		SELECT rownum as rnum, 
+			storeinfo.* 
+		FROM (
+			SELECT storeinfo.* 
+			FROM 
+				(
+					SELECT 
+						storeinfo.* ,
+						NVL((
+						    SELECT avg(avgscore)
+						    FROM reviewinfo x
+						    WHERE storeinfo.storeno = x.storeno
+						    GROUP BY x.storeno
+						) ,0) AS AVGSCORE ,
+						NVL((
+							SELECT count(reviewno)
+							FROM reviewinfo x
+							WHERE storeinfo.storeno = x.storeno
+							GROUP BY x.storeno
+						), 0) AS REVIEWCNT
+					FROM storeinfo storeinfo
+					WHERE 1=1
+					<include refid="search"></include>
+				) storeinfo
+			ORDER BY 
+			<include refid="orderby"></include>
+			DESC
+		) storeinfo 
+		
+		) storeinfo
+	WHERE rnum between #{pageStart} and #{pageEnd} 
+</select>
+
+<select id="listSearchCount" resultType="int">
+	SELECT 
+		count(storeno)
+	FROM (
+		SELECT 
+			rownum as rnum, 
+			storeinfo.* 
+		FROM (
+		  	SELECT 
+		  		storeinfo.* 
+			FROM (
+				SELECT storeinfo.* ,
+					NVL((
+					    SELECT avg(avgscore)
+					    FROM reviewinfo x
+					    WHERE storeinfo.storeno = x.storeno
+					    GROUP BY x.storeno
+					) ,0) AS AVGSCORE ,
+					NVL((
+						SELECT count(reviewno)
+						FROM reviewinfo x
+						WHERE storeinfo.storeno = x.storeno
+						GROUP BY x.storeno
+					), 0) AS REVIEWCNT
+				FROM storeinfo storeinfo
+				WHERE 1=1
+				  	<include refid="search"></include>
+		  	) storeinfo
+		  	ORDER BY
+		  	<include refid="orderby"></include>
+		  	DESC
+		) storeinfo
+	) storeinfo 
+</select>
+
+<select id="listSearchDetail" resultType="org.care.domain.StoreInfo">
+	SELECT 
+	 	storeinfo.* 
+	FROM 
+		(
+		SELECT rownum as rnum, 
+			storeinfo.* 
+		FROM (
+			SELECT storeinfo.* 
+			FROM 
+				(
+					SELECT 
+						storeinfo.* ,
+						NVL((
+						    SELECT avg(avgscore)
+						    FROM reviewinfo x
+						    WHERE storeinfo.storeno = x.storeno
+						    GROUP BY x.storeno
+						) ,0) AS AVGSCORE ,
+						NVL((
+							SELECT count(reviewno)
+							FROM reviewinfo x
+							WHERE storeinfo.storeno = x.storeno
+							GROUP BY x.storeno
+						), 0) AS REVIEWCNT
+					FROM storeinfo storeinfo, detailinfo d
+					WHERE storeinfo.storeno = d.storeno
+					<include refid="search"></include>
+					<include refid="valueArr"></include>
+				) storeinfo
+			ORDER BY 
+			<include refid="orderby"></include>
+			DESC
+		) storeinfo 
+		
+		) storeinfo
+	WHERE rnum between 1 and 9 
+</select>
+
+<select id="listSearchDetailCount" resultType="int">
+	SELECT 
+	 	count(storeno)
+	FROM 
+		(
+		SELECT rownum as rnum, 
+			storeinfo.* 
+		FROM (
+			SELECT storeinfo.* 
+			FROM 
+				(
+					SELECT 
+						storeinfo.* ,
+						NVL((
+						    SELECT avg(avgscore)
+						    FROM reviewinfo x
+						    WHERE storeinfo.storeno = x.storeno
+						    GROUP BY x.storeno
+						) ,0) AS AVGSCORE ,
+						NVL((
+							SELECT count(reviewno)
+							FROM reviewinfo x
+							WHERE storeinfo.storeno = x.storeno
+							GROUP BY x.storeno
+						), 0) AS REVIEWCNT
+					FROM storeinfo storeinfo, detailinfo d
+					WHERE storeinfo.storeno = d.storeno
+					<include refid="search"></include>
+					<include refid="valueArr"></include>
+				) storeinfo
+			ORDER BY 
+			<include refid="orderby"></include>
+			DESC
+		) storeinfo 
+		
+		) storeinfo
+</select>
+
+<select resultType="org.care.dto.StoreDTO" id="topList">
+
+<![CDATA[
+		select r.storeno storeNo, s.storepic, r.aa storeAvg, s.storename storeName from 
+		(select storeNo , AVG(avgScore) as aa from reviewInfo
+		group by storeNo order by aa DESC,storeNo DESC) r, storeInfo s
+		where r.storeno = s.storeNo and ROWNUM < 7
+		
+		]]>
+</select>
+
+<select id="reviewTop" resultType="org.care.dto.StoreDTO">
+
+<![CDATA[
+		SELECT A.* FROM (SELECT A.*, ROWNUM AS RNUM FROM (
+					SELECT A.* FROM ( SELECT A.*, (SELECT COUNT(1) FROM REVIEWINFO R 
+					WHERE A.STORENO = R.STORENO GROUP BY R.STORENO) AS REVIEWCOUNT FROM STOREINFO A ) A 
+					WHERE NOT REVIEWCOUNT IS NULL ORDER BY REVIEWCOUNT DESC ) A ) A WHERE RNUM BETWEEN 1 AND 6
+		
+		]]>
+</select>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.care.mapper.UserMapper">
+
+	<!-- id 속성은 DAO 의 메소드와 같아야 한다. 여기의 boardVO 는 mybatis-confg.xml 에 Alias 되어 
+		있습니다. -->
+	<select id="selectUser" resultType="org.care.domain.UserInfo">
+		SELECT *
+		FROM USERINFO
+		 WHERE USERID = #{userId} and PASSWORD = #{password}
+	</select>
+	
+	<update id="keepLogin">
+		update UserInfo set sessionKey = #{arg1}, sessionLimit = #{arg2} where
+		userId = #{arg0}
+	</update>
+
+	<select id="checkUserWithSessionKey" resultType="org.care.domain.UserInfo">
+		select * from UserInfo where sessionKey = #{value} and sessionLimit > now()
+	</select>
+
+
+	<update id="changeInfo">
+		update USERINFO set PASSWORD = #{newPassword}, NICKNAME = #{nickName},
+		 BIRTH = #{birth} ,EMAIL = #{email}, GENDER = #{gender} where USERNO = #{userNo}
+	</update>
+	
+	<select id="selectReviewUser" resultType="org.care.dto.ReviewDTO">
+		 SELECT A.*, B.STORENAME FROM 
+		 REVIEWINFO A LEFT JOIN STOREINFO B ON A.STORENO = B.STORENO 
+		 WHERE A.USERNO=#{userNo} ORDER BY A.REVIEWNo DESC
+	</select>
+</mapper>
